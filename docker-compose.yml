@@ -1,1 +1,36 @@
-
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16.3-alpine
+    container_name: mcpay-postgres
+    environment:
+      POSTGRES_USER: mcpay
+      POSTGRES_PASSWORD: mcpay_mz_2024!
+      POSTGRES_DB: mcpay_db
+      TZ: Africa/Maputo
+      PGTZ: Africa/Maputo
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mcpay -d mcpay_db"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+    restart: unless-stopped
+  pgadmin:
+    image: dpage/pgadmin4:8.6
+    container_name: mcpay-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mcpay.co.mz
+      PGADMIN_DEFAULT_PASSWORD: pgadmin_mz_2024!
+    ports:
+      - "8080:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  pgdata:
